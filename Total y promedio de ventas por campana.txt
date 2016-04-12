@@ -1,0 +1,366 @@
+﻿--OBTENER ZONAS
+Select DISTINCT c.Zona 
+From AVON.CLIENTE c
+
+--Obtener Campaña
+
+Select distinct (f.cuenta),f.ANO_CAMP 
+From AVON.Factura f
+where f.ano_camp = '2015' 
+  and f.cuenta = '6789'
+	
+Select numero, sum(precio*cantidad) 
+From avon.fac_deta 
+Where numero = 9278678 
+Group by numero 
+
+
+-- total de Venta por zona, por campana por vendedora
+Select f.cuenta, sum(f.monto_neto), f.campana, f.zona 
+From factura f 
+Group by f.CUENTA,f.CAMPANA,f.zona
+
+-- total de ventas promedio por campana por zona
+Select f.CAMPANA, f.zona, sum(f.monto_neto) / count(f.cuenta) as Promedio 
+From factura f 
+Group by f.CAMPANA,f.zona
+
+--Total de venta individual por año, por zona, por campana y promedio
+Select f.cuenta, f.CAMPANA, f.zona, f.ANO_CAMP, sum(f.monto_neto) / count(f.cuenta) as Promedio, sum(monto_neto) as Total
+From factura f 
+Where f.cuenta=143223 
+  and f.campana = 16 
+  and f.ANO_CAMP between 2013 and 2015
+Group by f.cuenta,f.CAMPANA,f.zona,f.ANO_CAMP
+
+--Total y promedio de ventas por año,por zona, por campana y total de consultoras
+Select f.CAMPANA, 
+	   f.zona, 
+	   f.ANO_CAMP, 
+	   sum(f.monto_neto) / count(f.cuenta) as Promedio, 
+	   sum(monto_neto) as Total, 
+	   count(f.cuenta) as Consultoras
+From factura f 
+Where f.ANO_CAMP between 2013 and 2015
+Group by f.CAMPANA,f.zona,f.ANO_CAMP
+
+--Total y promedio de ventas por año,por zona, por campana y total de consultoras
+Select  f.zona, 
+        sum(f.monto_neto) / count(f.cuenta) as Promedio, 
+		sum(monto_neto) as Total, 
+		count(f.cuenta) as Consultoras
+From factura f 
+Where f.ANO_CAMP between 2013 and 2015
+Group by f.zona
+Order by Promedio asc
+
+
+///Pregunta 1
+
+select * 
+From factura 
+Where FECHA BETWEEN to_date('01.01.2015', 'DD.MM.YYYY') AND to_date('31.07.2015', 'DD.MM.YYYY');
+
+
+//Pregunta 2
+//Una tabla donde queremos ver para cada zona la curva por campaña de la cantidad total de productos faltantes / cantidad de consultoras de la zona.
+//Estudiar la desviación estándar del promedio de faltantes por zona sobre el último año (ene-dic 2015). 
+
+
+
+//Datos solicitados.
+SELECT  f.zona,
+        b.CAMPANA,
+		count(b.CUENTA),
+		sum(b.cantidad)
+FROM AVON.BACKORDER b, 
+	 AVON.factura f 
+Where b.ESTADO is NULL 
+  and b.ano=2015 
+  and b.numero=f.numero
+Group by (f.zona,b.CAMPANA)
+Order by f.zona
+
+
+
+SELECT  f.zona,
+	    b.ARTICULO, 
+		b.CUENTA, 
+		b.NUMERO,
+		sum (b.CANTIDAD),
+		sum(b.PRECIO), 
+		b.CAMPANA,
+	    (b.cantidad * b.precio)as TotalNofacturado
+FROM AVON.BACKORDER b, AVON.factura f 
+Where b.ESTADO is NULL and b.ano=2015 and b.numero=f.numero
+group by f.zona,b.ARTICULO, b.CUENTA, b.NUMERO, b.CANTIDAD,b.PRECIO, b.CAMPANA
+
+
+
+
+
+
+SELECT  f.zona,b.CUENTA,b.CAMPANA,sum(b.cantidad),(b.cantidad * b.precio) as TotalNofacturado
+FROM AVON.BACKORDER b, AVON.factura f where b.ESTADO is NULL and b.ano=2015 and b.numero=f.numero
+group by   (f.zona,b.CUENTA,b.CAMPANA,b.cantidad,b.precio)
+order by f.zona desc
+
+//Desviacion estandar
+SELECT  f.zona,AVG(b.cantidad) as Faltantes
+FROM AVON.BACKORDER b, AVON.factura f 
+WHERE b.ESTADO is NULL and
+      b.ano=2015 and
+      b.numero=f.numero and
+      f.zona <> 399
+group by (f.zona)
+order by f.zona
+
+//Cantidad de productos pedidos por consultora
+Select f.zona,
+	   f.campana,
+	   (sum(fd.cantidad)/count(f.cuenta)) 
+FROM fac_deta fd, factura f
+where fd.numero = f.numero 
+  and f.ano_camp = 2015
+group by (f.zona,f.campana)
+order by f.zona
+
+
+Familia de inventario
+
+SELECT an.D_NEGOCIO,
+	   ac.D_CATEGORIA,
+	   avs.D_SUBCAT,
+	   acat.D_SEGMENTO,
+	   acon.D_CONCEPTO 
+FROM av_negocio an,
+	 av_categoria ac,
+	 av_sub_categoria avs,
+	 av_segmento acat ,
+	 av_concepto acon
+WHERE acon.ID_NEGOCIO =an.ID_NEGOCIO
+  and acon.ID_CATEGORIA =ac.ID_CATEGORIA
+  and acon.ID_SUBCAT=avs.ID_SUBCAT
+  and acon.ID_SEGMENTO=acat.ID_SEGMENTO
+  
+--SEGMENTACION DE CONSULTORAS
+Select c.cuenta,  
+	   Round(MAX((fa.fecha_p - c.fecha_in)/30),2) as Meses_Activa,
+	   count(distinct (fa.campana)) Cantidad_Campanas,
+	   Max(fa.campana) as Ultima_Campana, 
+	   MAX(Fa.ano_camp) anno
+From AVON.cliente c,
+	(Select f.numero, 
+			f.cuenta,
+			f.fecha_p,
+			f.campana,
+			f.ano_camp 
+	from AVON.Factura f 
+	where f.ano_camp between 2013 and 2015) fa
+WHERE c.CUENTA = fa.cuenta 
+  and fa.cuenta = 329624
+group by c.cuenta
+order by anno desc
+
+--SEGMENTACION FECHA DE INGRESO PRIMERA Factura
+
+Select distinct fa.cuenta, 
+	   min(fa.FECHA), 
+	   max(fa.fecha),
+	   c.FECHA_IN,
+	   ROUND((Max(fa.fecha) - (c.FECHA_IN))/20) as Reingreso,
+	   count(distinct(fa.CAMPANA))as CamapanasParticipadas,
+	   (CASE when (max(fa.fecha) - min(fa.FECHA)) <= 0 then 1 else ROUND((max(fa.fecha) - min(fa.FECHA))/20) end) as Cantida_Campana_Totales,
+	   Sum(fa.MONTO_NETO) as TotalFacturado
+From AVON.cliente c INNER JOIN AVON.Factura fa
+	 on c.CUENTA = fa.cuenta 
+where fa.cuenta <> 0 
+  and fa.MONTO_NETO > 0 
+  and fa.ANO_CAMP <= 2015 
+  and fa.cuenta=12509
+group by fa.cuenta,c.FECHA_IN
+
+--Mejorada
+
+Select distinct fa.cuenta,
+	   fa.ano_camp, 
+	   min(fa.FECHA), 
+	   max(fa.fecha),
+	   c.FECHA_IN,
+	   ROUND((Max(fa.fecha) - (c.FECHA_IN))/20) as Reingreso,
+	   count(distinct(fa.CAMPANA))as Camapanas_Participadas,
+	   (CASE when (max(fa.fecha) - min(fa.FECHA)) <= 0 then 1 else ROUND((max(fa.fecha) - min(fa.FECHA))/20) end) as Cantida_Campana_Totales, 
+	   Sum(fa.MONTO_NETO) as TotalFacturado
+From AVON.cliente c INNER JOIN AVON.Factura fa
+on c.CUENTA = fa.cuenta 
+where fa.cuenta <> 0 and fa.MONTO_NETO > 0 and fa.ANO_CAMP <= 2015 and fa.cuenta=12509
+group by fa.ano_camp, fa.cuenta,c.FECHA_IN 
+
+
+--- funciones
+CREATE OR REPLACE FUNCTION AVON.sku_CuentaCampana(p_cuenta in number) RETURN varchar2 IS
+v_cantidad   varchar2(200);
+BEGIN
+  select count(distinct(CAMPANA))
+  into v_cantidad
+  from AVON.Factura f
+  where f.cuenta = p_cuenta;
+  
+  return(v_cantidad);
+  
+exception when others then
+	 return('No Encontrado');	
+  
+END;
+
+CREATE OR REPLACE FUNCTION AVON.sku_CalculaFlete(p_cuenta in number) RETURN varchar2 IS
+v_cantidad   varchar2(200);
+BEGIN
+
+  
+  Select sum(fd.PRECIO*(1+fd.IMPUESTO/100))
+  into v_cantidad
+  From AVON.cliente c INNER JOIN AVON.Factura fa 
+  on c.CUENTA = fa.cuenta 
+  Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+  INNER JOIN avon.inventario i
+  ON i.articulo = fd.ARTICULO
+  where fa.cuenta = p_cuenta and fa.MONTO_NETO > 0 and fa.ANO_CAMP between 2013 and  2015 AND i.articulo = 99999;
+  
+  return(v_cantidad);
+  
+exception when others then
+	 return('No Encontrado');	
+  
+END;
+
+
+__________________
+
+Trae La antiguedad, fechas facturadas desde 2013 al 2015
+
+
+Select distinct fa.cuenta,fa.ano_camp, max(fa.fecha), avon.sku_cuentacampana(fa.cuenta)
+From AVON.cliente c INNER JOIN AVON.Factura fa 
+on c.CUENTA = fa.cuenta 
+where fa.cuenta <> 0 and fa.MONTO_NETO > 0 and fa.ANO_CAMP between 2013 and  2015  and fa.cuenta = 12509
+group by fa.ano_camp, fa.cuenta
+
+_________
+
+
+Select distinct fa.cuenta,fa.ano_camp, (round ( max(fa.fecha)- avon.sku_cuentacampana(fa.cuenta))/365),sum(fd.PRECIO * fd.CANTIDAD) ,
+( sum ((fd.PRECIO_FOLLETO + fd.IMPUESTO)* fd.CANTIDAD) - sum(fd.PRECIO * fd.CANTIDAD))
+From AVON.cliente c INNER JOIN AVON.Factura fa 
+on c.CUENTA = fa.cuenta 
+Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+where fa.cuenta <> 0 and fa.MONTO_NETO > 0 and fa.ANO_CAMP between 2013 and  2015  and fa.cuenta = 12509
+group by fa.ano_camp, fa.cuenta
+
+
+----Mejorada2.0
+
+Select distinct fa.cuenta,fa.ano_camp,fa.numero, (round ( max(fa.fecha)- avon.sku_cuentacampana(fa.cuenta))/365) AS anosConsultora,sum(fd.PRECIO * fd.CANTIDAD) AS TotalFacturado ,
+( sum (fd.PRECIO_FOLLETO* fd.CANTIDAD) - sum(fd.PRECIO * fd.CANTIDAD)) AS ganancia
+From AVON.cliente c INNER JOIN AVON.Factura fa 
+on c.CUENTA = fa.cuenta 
+Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+INNER JOIN avon.inventario i
+ON i.articulo = fd.ARTICULO
+where fa.cuenta <> 0 and fa.MONTO_NETO > 0 and fa.ANO_CAMP between 2013 and  2015 AND fa.cuenta = 12509 AND fd.ARTICULO <> 99999
+group by fa.ano_camp, fa.cuenta,fa.numero
+
+Final!!
+
+Select distinct fa.cuenta, (round ( max(fa.fecha)- avon.sku_cuentacampana(fa.cuenta))/365) AS anosConsultora,sum(fd.PRECIO * fd.CANTIDAD) AS TotalFacturado,
+( sum (fd.PRECIO_FOLLETO* fd.CANTIDAD) - sum(fd.PRECIO * fd.CANTIDAD) - avon.sku_CalculaNombramiento(fa.cuenta) - avon.sku_calculaflete(fa.cuenta) - avon.sku_calculafolleto(fa.cuenta)) AS ganancia
+From AVON.cliente c INNER JOIN AVON.Factura fa 
+on c.CUENTA = fa.cuenta 
+Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+INNER JOIN avon.inventario i
+ON i.articulo = fd.ARTICULO
+where fa.cuenta <> 0 and fa.MONTO_NETO > 0 and fa.ANO_CAMP between 2013 and  2015 AND fd.ARTICULO NOT IN (99999,89123,89124,89121) AND i.DESCRIPCION NOT LIKE '%FOLL%'
+group by fa.cuenta
+
+Select distinct fa.cuenta, (round ( max(fa.fecha)- avon.sku_cuentacampana(fa.cuenta))/365) AS anosConsultora,sum(fd.PRECIO * fd.CANTIDAD) AS TotalFacturado,sum(fd.PRECIO_FOLLETO*fd.CANTIDAD),
+avon.sku_CalculaNombramiento(fa.cuenta),avon.sku_calculaflete(fa.cuenta), avon.sku_calculafolleto(fa.cuenta),( sum (fd.PRECIO_FOLLETO* fd.CANTIDAD) - sum(fd.PRECIO * fd.CANTIDAD) - NVL(avon.sku_calculanombramiento(fa.cuenta),0) - avon.sku_calculaflete(fa.cuenta) - avon.sku_calculafolleto(fa.cuenta)) AS ganancia
+From AVON.cliente c INNER JOIN AVON.Factura fa 
+on c.CUENTA = fa.cuenta 
+Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+INNER JOIN avon.inventario i
+ON i.articulo = fd.ARTICULO
+where fa.cuenta = 214890 and fa.MONTO_NETO > 0 and fd.PRECIO >0 and fa.ANO_CAMP between 2013 and  2015 AND fd.ARTICULO NOT IN (99999,89123,89124,89121) AND i.DESCRIPCION NOT LIKE '%FOLL%'
+group by fa.cuenta
+-----------------
+Listado de Folletos cobrados a las consultoras:
+----
+Select distinct i.articulo,i.descripcion,fa.ano_camp,count (i.articulo),sum(fd.PRECIO)
+From AVON.cliente c INNER JOIN AVON.Factura fa 
+on c.CUENTA = fa.cuenta 
+
+Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+INNER JOIN avon.inventario i
+ON i.articulo = fd.ARTICULO
+
+where fa.cuenta <> 0 and fa.MONTO_NETO > 0 and fa.ANO_CAMP between 2013 and  2015 AND i.DESCRIPCION LIKE '%FOLL%'
+group by fa.ano_camp,i.articulo,i.descripcion
+HAVING sum(precio) >0
+ORDER BY fa.ano_camp desc
+----Jonathan
+Select distinct fa.cuenta, ( max(fa.fecha)- avon.sku_cuentacampana(fa.cuenta))/365 AS anosConsultora,sum(fd.PRECIO * fd.CANTIDAD) AS TotalFacturado,sum(fd.PRECIO_FOLLETO*fd.CANTIDAD),
+round(( sum (fd.PRECIO_FOLLETO* fd.CANTIDAD) - sum(fd.PRECIO * fd.CANTIDAD) - NVL(avon.sku_calculanombramiento(fa.cuenta),0) - NVL(avon.sku_calculaflete(fa.cuenta),0) - NVL(avon.sku_calculafolleto(fa.cuenta),0)),0) AS ganancia
+From AVON.cliente c INNER JOIN AVON.Factura fa 
+on c.CUENTA = fa.cuenta 
+Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+INNER JOIN avon.inventario i
+ON i.articulo = fd.ARTICULO
+where fa.cuenta <> 0 and fa.MONTO_NETO > 0 and fd.PRECIO >0 and fa.ANO_CAMP between 2013 and  2015 AND fd.ARTICULO NOT IN (99999,89870,89871,89872,89123,89124,89121) AND i.DESCRIPCION NOT LIKE '%FOLL%'
+group by fa.cuenta
+order by fa.cuenta desc
+
+#Formula de Ganancia
+(0.2213/(0.87-0.2213))*Por Precio
+
+
+CREATE OR REPLACE FUNCTION AVON.sku_CalculaOtros(p_cuenta in number) RETURN varchar2 IS
+v_cantidad   varchar2(200);
+BEGIN
+  
+   Select NVL(Sum(fd.precio*1.13* (fd.cantidad-fd.devuelto),0)  --resta la cantidad de articulos devueltos a los articulos facturados.
+   into v_cantidad
+   From AVON.cliente cl INNER JOIN AVON.Factura fa
+   on cl.CUENTA = fa.cuenta 
+   Inner Join Avon.FAC_DETA fd on fd.numero = fa.NUMERO 
+   INNER JOIN avon.inventario i
+   ON i.articulo = fd.ARTICULO
+   where fa.cuenta =p_cuenta 
+   and fa.MONTO_NETO > 0 
+   and fd.PRECIO >0 
+   and fa.ANO_CAMP between 2013 
+   and  2015 and i.ID_NEGOCIO = 5 
+   and fd.ARTICULO NOT IN (99999,89870,89871,89872,89123,89124,89121) 
+   and   i.descripcion not like '%FOLL%';
+   and fa.numero between menor and mayor -- agrega rangos de factura 
+   and fd.cantidad <> fd.devuelto ---cambio Verifica que cantidad facturada sea distinta a devolucion
+  return(v_cantidad);
+  
+exception when others then
+	 return('No Encontrado');	
+  
+END;
+
+
+--SEGMENTACION por Consultora
+
+select vf.cuenta,sum(vf.precio_folleto1) AS Ganacia,
+avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1 as TotalCampanas,
+Round(avon.sku_CuentaCampana(vf.cuenta)/(AVON.sku_CampanaMax(vf.cuenta)-avon.sku_CampanaMin(vf.cuenta)+1),2) as Participacion
+from avon.view_Factura2013_2015_3 vf
+group by vf.cuenta
+ORDER BY vf.cuenta		
+
+--SEGMENTACION por zona
+Select vz.zona,round(sum(vz.precio*vz.CANTIDAD)/count(distinct vz.CUENTA),2)/ iz.salario_prom*100 as INEC
+from avon.view_Zona2013_2015 vz inner join avon.InecZona iz on vz.ZONA = iz.zona
+group by vz.zona, iz.salario_prom
+order by zona
