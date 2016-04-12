@@ -354,10 +354,11 @@ END;
 
 select vf.cuenta,sum(vf.precio_folleto1) AS Ganacia,
 avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1 as TotalCampanas,
-Round(avon.sku_CuentaCampana(vf.cuenta)/(AVON.sku_CampanaMax(vf.cuenta)-avon.sku_CampanaMin(vf.cuenta)+1),2) as Participacion
-from avon.view_Factura2013_2015_3 vf
+avon.sku_CuentaCampana(vf.cuenta)/(avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1) as Participacion
+from avon.view_Factura2013_2015_3 vf 
+where cuenta = 194383
 group by vf.cuenta
-ORDER BY vf.cuenta		
+ORDER BY vf.cuenta
 
 --SEGMENTACION por zona
 Select vz.zona,round(sum(vz.precio*vz.CANTIDAD)/count(distinct vz.CUENTA),2)/ iz.salario_prom*100 as INEC
