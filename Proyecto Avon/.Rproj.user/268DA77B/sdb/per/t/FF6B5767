@@ -1,0 +1,18 @@
+{
+    "contents" : "# load Practice data frame into memory\n#   if not alredy there\n\nsource('utils.R')\n\n# install the xlsx package, if needed\n# and load it into memory\nensure.loaded(\"data.table\")\n\nsource('DBConnection.r')\n\n#Kmeans\n\nrs <- dbSendQuery(con,\"Select vz.zona,vz.cuenta,round(sum(vz.precio*vz.CANTIDAD),2) as Monto from avon.view_Zona2013_2015 vz \n                  group by vz.zona,vz.cuenta\n                  order by zona\")\n\nZonas <- fetch(rs)\nhead(Zonas)\n\n\n#Calcular Mediana\n\nzonas1 <-data.table(Zonas)\n\nzonas1[ZONA==301,Mediana :=median(zonas1[ZONA==301][,MONTO])]\n\n\nfor(i in 301:355)\n{\n  zonas1[ZONA==i,Mediana :=median(zonas1[ZONA==i][,MONTO])]\n}\n\nzonas1\n\nwrite.csv(zonas1,\"C:/Users/ricmorales/Desktop/BD/Mediana.csv\")\n",
+    "created" : 1460587742121.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "90984500",
+    "id" : "FF6B5767",
+    "lastKnownWriteTime" : 1460591359,
+    "path" : "~/Analytics/GitHub/AnalyticsTesting/Proyecto Avon/Mediana.r",
+    "project_path" : "Mediana.r",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "type" : "r_source"
+}

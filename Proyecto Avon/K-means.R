@@ -9,7 +9,7 @@ avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku
                   Round(avon.sku_CuentaCampana(vf.cuenta)/(avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1),2) as Participacion
                   from avon.view_Factura2013_2015_3 vf 
                   group by vf.cuenta
-                  ORDER BY vf.cuenta")
+                  ORDER BY vf.cuenta desc")
 
 Clientes <- fetch(rs)
 head(Clientes)
