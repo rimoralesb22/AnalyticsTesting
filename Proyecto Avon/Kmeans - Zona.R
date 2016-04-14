@@ -1,31 +1,23 @@
+##Kmeans - Zona
+
 # load Practice data frame into memory
 #   if not alredy there
-source('DBConnection.r')
 
-#Kmeans
+source('utils.R')
 
-#rs <- dbSendQuery(con,"select vf.cuenta,sum(vf.precio_folleto1) AS Ganacia,
-#avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1 as TotalCampanas,
-#                  Round(avon.sku_CuentaCampana(vf.cuenta)/(avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1),2) as Participacion
-#                  from avon.view_Factura2013_2015_3 vf 
-#                  group by vf.cuenta")
+# install the xlsx package, if needed
+# and load it into memory
+ensure.loaded("data.table")
 
-#Clientes <- fetch(rs)
-Clientes = read.csv("ganancia_optimizado_6Clusters.csv")
-Clientes$Grupo <- NULL
-head(Clientes[3:5])
-#Clientes<- transform(Clientes,NOMBRE = as.factor(Clientes$NOMBRE))
+Zonas = read.csv("KmeansZona_outliers.csv")
+zonastable <- data.frame(Zonas)
 
-remove_outliers <- function(x, na.rm = TRUE, ...) {
-  qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
-  H <- 1.5 * IQR(x, na.rm = na.rm)
-  y <- x
-  y[x < (qnt[1] - H)] <- NA
-  y[x > (qnt[2] + H)] <- NA
-  y
-}
+zonastable$Valor <-gsub(",","",zonastable$Valor)
+zonastable$Saturacion <-gsub(",","",zonastable$Saturacion)
+zonastable$Potencial <-gsub(",","",zonastable$Potencial)
+zonastable$Homogeneidad <-gsub(",","",zonastable$Homogeneidad)
 
-y <- remove_outliers(Clientes[4])
+
 #Calcular la cantidad de clusters
 #------------------------------------------------------------------------------------
 # Crea vector "Errores", sin datos
@@ -38,7 +30,7 @@ K_Max   <-9
 # Luego guarda el error de cada ejecucion en el vector "Errores"
 for (i in 1:K_Max)
 {
-  Errores[i] <- sum(kmeans(Clientes[3:5], centers=i)$withinss)
+  Errores[i] <- sum(kmeans(zonastable[-1], centers=i)$withinss)
 }
 
 #------------------------------------------------------------------------------------
@@ -81,7 +73,7 @@ for (i in 1:CantidadAlgoritmos)
 {
   for (ii in 1:100) 
   {
-    Modelo      <- kmeans(Clientes[3:5],6, algorithm = Algoritmos[i])
+    Modelo      <- kmeans(zonastable[-1],4, algorithm = Algoritmos[i])
     Iteraciones <- rbind(Iteraciones,
                          data.frame(Intraclase = Modelo$betweenss,
                                     Algoritmo = Algoritmos[i]))
@@ -97,15 +89,15 @@ AlgoritmoGanador <-names(Resultados[1])
 
 #-------------------------------------------------------------------------
 # PASO 5: Ejecuta kmeans con algoritmo ganador y asigna grupo a cada cliente
-KmeansOptimizado <- kmeans(Clientes[3:5],6, algorithm = AlgoritmoGanador)
-Clientes$Grupo   <-KmeansOptimizado$cluster
+KmeansOptimizado <- kmeans(zonastable[-1],4, algorithm = AlgoritmoGanador)
+zonastable$Grupo   <-KmeansOptimizado$cluster
 
 #-------------------------------------------------------------------------
 
 #PASO 6: Grafica segmentacion de algoritomo ganador y luego asigna etiquetas
-plot(Clientes$TOTALCAMPANAS,Clientes$GANANCIA,col=Clientes$Grupo,cex.axis=.7,cex.lab=.7)
-text(Clientes$TOTALCAMPANAS,Clientes$GANANCIA,
-     labels=Clientes$CUENTA,pos=1,col=Clientes$Grupo,cex=.7)
+plot(zonastable$Valor,zonastable$Potencial,col=zonastable$Grupo,cex.axis=.7,cex.lab=.7)
+text(zonastable$Valor,zonastable$Potencial,
+     labels=zonastable$ZONA,pos=1,col=zonastable$Grupo,cex=.7)
 title(main=paste("Algoritmo ganador:",AlgoritmoGanador),cex.main=.9)
 
-write.csv(Clientes,"C:/Users/ricmorales/Desktop/BD/ganancia_optimizado_6Clusters.csv")
+write.csv(zonastable,"C:/Users/ricmorales/Desktop/BD/kmeans-zona.csv")
