@@ -365,3 +365,17 @@ Select vz.zona,round(sum(vz.precio*vz.CANTIDAD)/count(distinct vz.CUENTA),2)/ iz
 from avon.view_Zona2013_2015 vz inner join avon.InecZona iz on vz.ZONA = iz.zona
 group by vz.zona, iz.salario_prom
 order by zona
+
+
+
+--SEGMENTACION de Proucto
+SELECT cuenta,ID_NEGOCIO,id_categoria,Sum(Cantidad*Precio) as Monto FROM avon.view_Productos2013_2015 
+group by cuenta,ID_NEGOCIO,id_categoria
+order by cuenta,ID_NEGOCIO,id_categoria,Monto desc
+
+SELECT vp.cuenta,vp.campana,vp.NEGOCIO,vp.Categoria,sum(vp.cantidad*vp.Precio) as Monto,
+count(distinct vp.categoria) as CantidadCategoria,
+Round((sum(vp.cantidad*vp.Precio)/AVON.sku_CalculaMonto(vp.CUENTA,vp.campana))*100,2) as Porcentaje
+FROM avon.view_Productos2013_2015 vp where vp.cuenta = 117139
+group by vp.cuenta,vp.campana,vp.NEGOCIO,vp.Categoria
+order by campana,negocio,categoria,porcentaje desc
