@@ -11,12 +11,27 @@ ensure.loaded("data.table")
 
 Zonas = read.csv("KmeansZona_outliers.csv")
 zonastable <- data.frame(Zonas)
+head(zonastable)
 
 zonastable$Valor <-gsub(",","",zonastable$Valor)
 zonastable$Saturacion <-gsub(",","",zonastable$Saturacion)
 zonastable$Potencial <-gsub(",","",zonastable$Potencial)
 zonastable$Homogeneidad <-gsub(",","",zonastable$Homogeneidad)
 
+zonastable$Valor <-as.numeric(zonastable$Valor)
+zonastable$Saturacion <-as.numeric(zonastable$Saturacion)
+zonastable$Potencial <-as.numeric(zonastable$Potencial)
+zonastable$Homogeneidad <-as.numeric(zonastable$Homogeneidad)
+
+zonas2 = scale(zonastable[3:5], center = TRUE, scale = TRUE)
+head(zonas2)
+
+
+zonastable = cbind(zonas2,zona=zonastable$ZONA,homogeneidadReal=zonastable$Homogeneidad,valorReal=zonastable$Valor,saturacionReal=zonastable$Saturacion,potencialReal=zonastable$Potencial)
+head(zonastable)
+zonastable <- data.frame(zonastable)
+
+cor(zonastable[1:4])
 
 #Calcular la cantidad de clusters
 #------------------------------------------------------------------------------------
@@ -30,7 +45,7 @@ K_Max   <-9
 # Luego guarda el error de cada ejecucion en el vector "Errores"
 for (i in 1:K_Max)
 {
-  Errores[i] <- sum(kmeans(zonastable[-1], centers=i)$withinss)
+  Errores[i] <- sum(kmeans(zonastable[1:3], centers=i)$withinss)
 }
 
 #------------------------------------------------------------------------------------
@@ -73,7 +88,7 @@ for (i in 1:CantidadAlgoritmos)
 {
   for (ii in 1:100) 
   {
-    Modelo      <- kmeans(zonastable[-1],4, algorithm = Algoritmos[i])
+    Modelo      <- kmeans(zonastable[1:3],5, algorithm = Algoritmos[i])
     Iteraciones <- rbind(Iteraciones,
                          data.frame(Intraclase = Modelo$betweenss,
                                     Algoritmo = Algoritmos[i]))
@@ -89,15 +104,15 @@ AlgoritmoGanador <-names(Resultados[1])
 
 #-------------------------------------------------------------------------
 # PASO 5: Ejecuta kmeans con algoritmo ganador y asigna grupo a cada cliente
-KmeansOptimizado <- kmeans(zonastable[-1],4, algorithm = AlgoritmoGanador)
+KmeansOptimizado <- kmeans(zonastable[1:3],5, algorithm = AlgoritmoGanador)
 zonastable$Grupo   <-KmeansOptimizado$cluster
 
 #-------------------------------------------------------------------------
 
 #PASO 6: Grafica segmentacion de algoritomo ganador y luego asigna etiquetas
-plot(zonastable$Valor,zonastable$Potencial,col=zonastable$Grupo,cex.axis=.7,cex.lab=.7)
-text(zonastable$Valor,zonastable$Potencial,
+plot(zonastable$Homogeneidad,zonastable$Potencial,col=zonastable$Grupo,cex.axis=.7,cex.lab=.7)
+text(zonastable$Homogeneidad,zonastable$Potencial,
      labels=zonastable$ZONA,pos=1,col=zonastable$Grupo,cex=.7)
 title(main=paste("Algoritmo ganador:",AlgoritmoGanador),cex.main=.9)
 
-write.csv(zonastable,"C:/Users/ricmorales/Desktop/BD/kmeans-zona.csv")
+write.csv(zonastable,"C:/Users/isalopez/Desktop/kmeans-zona.csv")
