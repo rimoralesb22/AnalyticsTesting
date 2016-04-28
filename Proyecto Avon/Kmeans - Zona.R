@@ -31,7 +31,7 @@ zonastable = cbind(zonas2,zona=zonastable$ZONA,homogeneidadReal=zonastable$Homog
 head(zonastable)
 zonastable <- data.frame(zonastable)
 
-cor(zonastable[1:4])
+#cor(zonastable[1:4])
 
 #Calcular la cantidad de clusters
 #------------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ for (i in 1:CantidadAlgoritmos)
 {
   for (ii in 1:100) 
   {
-    Modelo      <- kmeans(zonastable[1:3],5, algorithm = Algoritmos[i])
+    Modelo      <- kmeans(zonastable[1:3],3, algorithm = Algoritmos[i])
     Iteraciones <- rbind(Iteraciones,
                          data.frame(Intraclase = Modelo$betweenss,
                                     Algoritmo = Algoritmos[i]))
@@ -104,8 +104,9 @@ AlgoritmoGanador <-names(Resultados[1])
 
 #-------------------------------------------------------------------------
 # PASO 5: Ejecuta kmeans con algoritmo ganador y asigna grupo a cada cliente
-KmeansOptimizado <- kmeans(zonastable[1:3],5, algorithm = AlgoritmoGanador)
+KmeansOptimizado <- kmeans(zonastable[1:3],3, algorithm = AlgoritmoGanador)
 zonastable$Grupo   <-KmeansOptimizado$cluster
+
 
 #-------------------------------------------------------------------------
 
@@ -115,4 +116,4 @@ text(zonastable$Homogeneidad,zonastable$Potencial,
      labels=zonastable$ZONA,pos=1,col=zonastable$Grupo,cex=.7)
 title(main=paste("Algoritmo ganador:",AlgoritmoGanador),cex.main=.9)
 
-write.csv(zonastable,"C:/Users/isalopez/Desktop/kmeans-zona.csv")
+write.csv(zonastable,"C:/Users/ricmorales/Desktop/kmeans-zona.csv")
