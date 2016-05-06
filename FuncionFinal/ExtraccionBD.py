@@ -4,7 +4,7 @@ import csv
 def Valor(cuenta,ano1,ano2):
     SQL='''select sum(vf.precio_folleto1) AS Ganacia,
     avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1 as TotalCampanas,
-    Round(avon.sku_CuentaCampana(vf.cuenta)/(AVON.sku_CampanaMax(vf.cuenta)-avon.sku_CampanaMin(vf.cuenta)+1),2) as Participacion
+    Round(avon.sku_CuentaCampana(vf.cuenta)/(avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1),2) as Participacion
     from avon.view_Factura2013_2015_3 vf  where vf.cuenta = '''+cuenta+''' and vf.ano between '''+ano1+''' and '''+ano2+'''
     group by vf.cuenta
     ORDER BY vf.cuenta'''

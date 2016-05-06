@@ -21,7 +21,6 @@ def imprimirArchivo():
     outfile = open('Export'+dia+hora+'.csv', 'w') # Indicamos el valor 'w'.
     outfile.write('Cuenta,GrupoZona,GrupoProducto,GrupoValor\n')
     for i in imprimir:
-        print (imprimir)
         linea=','.join(i)+"\n"
         outfile.write(linea)
     outfile.close() 	
@@ -48,7 +47,6 @@ def verificarProducto(producto):
         return "Generalista"
 def verificarValor(valor):
     temp=[0,0,0,0,0]
-    print(valor)
     for i in valor:
         tempGanancia=(float(i[0])-121617.9)/308901
         tempAntiguedad=(float(i[1])-38.31154)/53.98278
@@ -62,7 +60,6 @@ def verificarValor(valor):
         indice=temp.index(min(temp))+1
         return(verificarValor_aux(indice))
 def verificarValor_aux(cont):
-    print(cont)
     if cont==1:
         return 'Destacadas'
     elif cont==2:
@@ -91,7 +88,6 @@ def ingresar():
                     temp=[]
                     listaFinal=[]
                     for i in cuentas:
-                        print(i)
                         sqlZona=Zona(i,ano1,ano2)
                         zona=connect(sqlZona)
                         zonas1=(lecturaArchivo("kmeans-zona.csv"))
@@ -104,7 +100,6 @@ def ingresar():
 
                         sqlValor=Valor(i,ano1,ano2)
                         valor=connect(sqlValor)                        
-                        
                         grupovalor=verificarValor(valor)
                         
                         temp.append(i)
