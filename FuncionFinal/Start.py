@@ -20,6 +20,7 @@ def imprimirArchivo():
     dia=time.strftime('%d%B%Y')
     outfile = open('Export'+dia+hora+'.csv', 'w') # Indicamos el valor 'w'.
     outfile.write('Cuenta,GrupoZona,GrupoProducto,GrupoValor\n')
+    messagebox.showinfo(title="¡Listo!",message='Archivo exportado Export'+dia+hora+'.csv')
     for i in imprimir:
         linea=','.join(i)+"\n"
         outfile.write(linea)
@@ -248,3 +249,4 @@ btn6.place(x=300,y=500)
 ##btn7=Button(fpag,image=venta,command=ventas,relief="flat",cursor="hand2",bg="yellow")
 ##btn7.place(x=500,y=40)
 
+root.mainloop()
