@@ -1,6 +1,15 @@
 import os
 import cx_Oracle
 import csv
+
+##dsn_tns = '(DESCRIPTION =    (ADDRESS_LIST =      (ADDRESS = (PROTOCOL = TCP)(HOST = 5.152.182.176)(PORT = 1521))    )    (CONNECT_DATA =  (SERVICE_NAME = DBAVON) ) )'
+##user = 'TESTER'
+##passwd = 'D3loi773943$'
+
+dsn_tns = ''
+user = ''
+passwd = ''
+
 def Valor(cuenta,ano1,ano2):
     SQL='''select sum(vf.precio_folleto1) AS Ganacia,
     avon.sku_CampanaTot(AVON.sku_CampanaMax(vf.cuenta))-avon.sku_campanatot(avon.sku_CampanaMin(vf.cuenta))+1 as TotalCampanas,
@@ -17,7 +26,18 @@ def Producto(cuenta,ano1,ano2):
     SQL='''SELECT count (distinct vp.Categoria)  FROM avon.view_Productos2013_2015 vp where vp.cuenta = '''+cuenta+''' and vp.ano between '''+ano1+''' and '''+ano2+''''''
     return(SQL)
 
-#SQL='''SELECT * from avon.av_negocio 117139'''
+
+def lecturaArchivo1(archivo):
+    f = open(archivo)
+    lista=[]
+    data1=[]
+    data =f.readlines()
+    for i in range (0,len(data)):
+        data1=data[i].replace("\n", "")
+        data1=data1.split(',')
+        data1.append(1)
+        lista.append(data1)
+    return lista
 
 def escribirArchivo(cursor,Archivo):
     outfile = open(Archivo, 'a') # Indicamos el valor 'w'.
@@ -52,8 +72,7 @@ def connect(SQL):
     #>>> db = cx_Oracle.connect('TESTER', 'D3loi773943$', '5.152.182.176:1521/')
     #>>> db1 = cx_Oracle.connect('hr/hrpwd@localhost:1521/XE')
     #dsn_tns = cx_Oracle.makedsn('localhost', 1521, 'XE')
-    dsn_tns = '(DESCRIPTION =    (ADDRESS_LIST =      (ADDRESS = (PROTOCOL = TCP)(HOST = 5.152.182.176)(PORT = 1521))    )    (CONNECT_DATA =  (SERVICE_NAME = DBAVON) ) )'
-    connection = cx_Oracle.connect('TESTER', 'D3loi773943$', dsn_tns) 
+    connection = cx_Oracle.connect(user, passwd, dsn_tns)
     #connection = cx_Oracle.connect('TESTER/D3loi773943$@5.152.182.176:1521/DBAVON')
     #connection = cx_Oracle.connect('TESTER/D3loi773943$@5.152.182.176:1521/DBAVON')
     cursor = connection.cursor()
@@ -69,22 +88,19 @@ def connect(SQL):
 def ejecutar(SQL):
     connect('''SELECT count (distinct vp.Categoria)  FROM avon.view_Productos2013_2015 vp  where vp.cuenta = 12509 and vp.ano between 2013 and 2015''')
 
+def readDB():
+    global dsn_tns
+    global user
+    global passwd
+    string=lecturaArchivo1("ConnectionData")
+    dsn_tns=str(string[0][0])
+    user=str(string[0][1])
+    passwd=str(string[0][2])
 
-
-
-    #ejecutar(str(i))
-#connection.close()    
-    
-##DBAVONPRUEBAS=
-##  (DESCRIPTION =
-##    (ADDRESS_LIST =
-##      (ADDRESS = (PROTOCOL = TCP)(HOST = 5.152.182.176)(PORT = 1521))
-##    )
-##    (CONNECT_DATA =
-##      (SERVICE_NAME = DBAVON)
-##    )
-##  )
-####
-##User: TESTER
-##Pass: D3loi773943$
-## 
+try:
+    string=lecturaArchivo1("ConnectionData")
+    dsn_tns=str(string[0][0])
+    user=str(string[0][1])
+    passwd=str(string[0][2])
+except:
+    pass

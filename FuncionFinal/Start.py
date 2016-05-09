@@ -5,13 +5,87 @@ import os
 import time
 import math
 from ExtraccionBD import *
+global dsn_tns
+global user
+global passwd
+
 imprimir=[]
 
+def porDefecto():
+    
+    tns3 = '(DESCRIPTION =    (ADDRESS_LIST =      (ADDRESS = (PROTOCOL = TCP)(HOST = 5.152.182.176)(PORT = 1521))    )    (CONNECT_DATA =  (SERVICE_NAME = DBAVON) ) )'
+    user3 = 'TESTER'
+    passwd3 = 'D3loi773943$'
+    result = messagebox.askquestion("Restaurar", "¿Desea volver a los valores por defecto de la Base de Datos?", icon='warning')
+    if result == 'yes':
+        outfile = open("ConnectionData", 'w') # Indicamos el valor 'w'.       
+        linea=tns3+','+user3+','+passwd3+'\n'
+        outfile.write(linea)
+        outfile.close()
+        readDB()
+        messagebox.showinfo(title="¡Listo!",message="Favor cerrar la aplicación para que los cambios surtan efecto")
+    else:
+        messagebox.showinfo(title="Información",message="No se han hecho cambios en los parametros de conexión de la base de datos")
+    
+    
 def retrocedermenu():
     tree.delete(*tree.get_children())
-    nom=txt.delete(1.0, END)  
+    nom=txt.delete(1.0, END)
+    ent3.delete(0,END)
+    ent4.delete(0,END)
+    ent3.insert(0, "2013")
+    ent4.insert(0,"2015")
     panel.remove(fingresar)
     panel.add(frame)
+
+def retrocedermenu1():
+    nom=txt.delete(1.0, END)
+    txt2.config(state=DISABLED,bg="dark gray")
+    txt3.config(state=DISABLED,bg="dark gray")
+    txt4.config(state=DISABLED,bg="dark gray")
+    panel.remove(frameregis)
+    panel.add(frame)
+
+def modificarBD():
+    txt2.config(state=NORMAL,bg="white")
+    txt3.config(state="normal",bg="white")
+    txt4.config(state=NORMAL,bg="white")
+
+def guardarBD():
+    tns=(txt2.get(1.0,END)[:-1])
+    user2=(txt3.get(1.0,END)[:-1])
+    passwd2=(txt4.get(1.0,END)[:-1])
+    if tns!='':
+        if user2!='':
+            if passwd2!='':
+                outfile = open("ConnectionData", 'w') # Indicamos el valor 'w'.       
+                linea=tns+','+user2+','+passwd2+'\n'
+                outfile.write(linea)
+                outfile.close()
+                txt2.config(state=DISABLED,bg="dark gray")
+                txt3.config(state=DISABLED,bg="dark gray")
+                txt4.config(state=DISABLED,bg="dark gray")
+                readDB()
+            else:
+                messagebox.showinfo(title="Error",message="Password no puede estar vacio")
+        else:
+            messagebox.showinfo(title="Error",message="Usuario no puede estar vacio")
+    else:
+        messagebox.showinfo(title="Error",message="TNS NAME no puede estar vacio")
+        
+    
+    
+def modificar():    
+    #txt3.insert(1.0,dsn_tns)
+    #txt3.delete(1.0, END)
+    try:
+        tree.delete(*tree.get_children())
+        panel.remove(frame)
+        panel.add(frameregis)
+    except:
+        tree.delete(*tree.get_children())
+        panel.remove(fingresar)
+        panel.add(frameregis)
 
 
 def imprimirArchivo():
@@ -40,7 +114,7 @@ def lecturaArchivo(archivo):
 def verificarZona(lista,Zona):
     for i in range (0,len(lista)):
         if lista[i][4]==str(Zona):
-            return(lista[i][9])
+            return(lista[i][10])
 def verificarProducto(producto):
     if int(producto)<=4:
         return "Especialista"
@@ -83,52 +157,58 @@ def ingresar():
     ano2=ent4.get()
     #contrasenna=ent1.get()
     if cuentas!=['']:
-        if ano1!="":
-            if ano2!="":
-                try:                    
-                    temp=[]
-                    listaFinal=[]
-                    for i in cuentas:
-                        sqlZona=Zona(i,ano1,ano2)
-                        zona=connect(sqlZona)
-                        zonas1=(lecturaArchivo("kmeans-zona.csv"))
-                        grupozona=verificarZona(zonas1,zona[0][0])
-
-                        sqlProducto=Producto(i,ano1,ano2)
-                        producto=connect(sqlProducto)
-
-                        grupoproducto=verificarProducto(producto[0][0])
-
-                        sqlValor=Valor(i,ano1,ano2)
-                        valor=connect(sqlValor)                        
-                        grupovalor=verificarValor(valor)
-                        
-                        temp.append(i)
-                        temp.append(grupozona)
-                        temp.append(grupoproducto)
-                        temp.append(grupovalor)
-                        listaFinal.append(temp)
+        if int(ano2)>int(ano1):
+            if ano1!="":
+                if ano2!="":
+                    try:                    
                         temp=[]
-                        imprimir=listaFinal
-                    cargarTree(listaFinal)
-                    panel.remove(frame)
-                    panel.add(fingresar)   
-                      
-                except ValueError:
-                     messagebox.showinfo(title="Error",message="Lo que digito no es valido")
-                     nombre=ent.delete(0,END)
-                     ano1=ent3.delete(0,END)
-                     ano2=ent4.delete(0,END)
-                
-                except TypeError:
-                    messagebox.showinfo(title="Error",message="Usted no es un usuario Registrado")
-                    nombre=ent.delete(0,END)
-                    contrasenna=ent1.delete(0,END)                
+                        listaFinal=[]
+                        for i in cuentas:
+                            try:
+                                sqlZona=Zona(i,ano1,ano2)
+                                zona=connect(sqlZona)
+                                zonas1=(lecturaArchivo("kmeans-zona.csv"))
+                                grupozona=verificarZona(zonas1,zona[0][0])
+
+                                sqlProducto=Producto(i,ano1,ano2)
+                                producto=connect(sqlProducto)
+
+                                grupoproducto=verificarProducto(producto[0][0])
+
+                                sqlValor=Valor(i,ano1,ano2)
+                                valor=connect(sqlValor)                        
+                                grupovalor=verificarValor(valor)
+                                
+                                temp.append(i)
+                                temp.append(grupozona)
+                                temp.append(grupoproducto)
+                                temp.append(grupovalor)
+                                listaFinal.append(temp)
+                                temp=[]
+                                imprimir=listaFinal
+                            except IndexError:
+                                messagebox.showinfo(title="Error",message="No hay información disponible para las consultoras indicadas")
+                                
+                        cargarTree(listaFinal)
+                        panel.remove(frame)
+                        panel.add(fingresar)  
+                          
+                    except ValueError:
+                         messagebox.showinfo(title="Error",message="Lo que digito no es valido")
+                         nombre=ent.delete(0,END)
+                         ano1=ent3.delete(0,END)
+                         ano2=ent4.delete(0,END)
+                    
+                    except TypeError:
+                        messagebox.showinfo(title="Error",message="Usted no es un usuario Registrado")
+                        nombre=ent.delete(0,END)
+                        contrasenna=ent1.delete(0,END)                
+                else:
+                     messagebox.showinfo(title="Error",message="Debe incluir un rango de año")
             else:
                  messagebox.showinfo(title="Error",message="Debe incluir un rango de año")
         else:
-             messagebox.showinfo(title="Error",message="Debe incluir un rango de año")
-            
+            messagebox.showinfo(title="Error",message="El segundo año debe ser mayor al primero")            
     else:
         messagebox.showinfo(title="Error",message="Debe incluir un numero de cuenta")
 
@@ -138,7 +218,7 @@ root.title("Analytics")
 
 frameprin=ttk.Frame(root)
 frameprin.pack(expand=YES)
-frameprin["padding"]=(10,10) # Establece un Borde
+#frameprin["padding"]=(10,10) # Establece un Borde
 
 panel=ttk.Panedwindow(frameprin, orient=VERTICAL)
 panel.grid()
@@ -146,14 +226,14 @@ panel.grid()
 frame=ttk.Frame(frameprin)
 fingresar=ttk.Frame(frameprin)
 frameregis=ttk.Frame(frameprin)
-frameventas=ttk.Frame(frameprin)
-fnuevo=ttk.Frame(frameprin)
-fusados=ttk.Frame(frameprin)
-frm_adminmo=ttk.Frame(frameprin)
-modiregis=ttk.Frame(frameprin)
-frm_adminmo1=ttk.Frame(frameprin)
-frm_adminmo2=ttk.Frame(frameprin)
-frm_adminmo3=ttk.Frame(frameprin)
+##frameventas=ttk.Frame(frameprin)
+##fnuevo=ttk.Frame(frameprin)
+##fusados=ttk.Frame(frameprin)
+##frm_adminmo=ttk.Frame(frameprin)
+##modiregis=ttk.Frame(frameprin)
+##frm_adminmo1=ttk.Frame(frameprin)
+##frm_adminmo2=ttk.Frame(frameprin)
+##frm_adminmo3=ttk.Frame(frameprin)
 
 panel.add(frame)
 
@@ -201,7 +281,13 @@ ent3.insert(0, "2013")
 ent4.insert(0,"2015")
 #ent1.place(x=33,y=231)
 
-
+############ Menu
+menubar = Menu(frame)
+filemenu = Menu(menubar, tearoff=0)
+filemenu.add_command(label="Modificar", command=modificar)
+filemenu.add_command(label="Valores por Defecto", command=porDefecto)
+menubar.add_cascade(label="Configuración de Base de Datos", menu=filemenu)
+root.config(menu=menubar)
 #=================================INGRESAR====================================================
 
 imagen4 = PhotoImage(file="fondo ingresar.gif")
@@ -248,5 +334,48 @@ btn6.place(x=300,y=500)
 ##venta = PhotoImage(file="ventas.gif")
 ##btn7=Button(fpag,image=venta,command=ventas,relief="flat",cursor="hand2",bg="yellow")
 ##btn7.place(x=500,y=40)
+#================================REGISTRO==================================================================
+
+imagen = PhotoImage(file="Log1.gif")
+fregis = Label(frameregis,image=imagen)
+fregis.image=imagen
+fregis.grid(row=0,column=0,columnspan=10,rowspan=50)
+
+txt2= Text(frameregis,width=50,height=6,bg="dark gray",font=("arial",14))
+txt2.place(x=60,y=80)
+txt2.insert(1.0,dsn_tns)
+
+txt3= Text(frameregis,width=50,height=2,bg="dark gray",font=("arial",14))
+txt3.place(x=60,y=250)
+txt3.insert(1.0,user)
+
+txt4= Text(frameregis,width=50,height=2,bg="dark gray",font=("arial",14))
+txt4.place(x=60,y=330)
+txt4.insert(1.0,passwd)
+
+lbl7 = Label(frameregis, text="TNS Name")
+lbl7.place(x=60,y=55)
+
+lbl8 = Label(frameregis, text="User Name")
+lbl8.place(x=60,y=223)
+
+lbl9 = Label(frameregis, text="Password")
+lbl9.place(x=60,y=305)
+
+txt2.config(state=DISABLED)
+txt3.config(state=DISABLED)
+txt4.config(state=DISABLED)
+
+btn6=Button(frameregis,text="Atrás",command=retrocedermenu1,cursor="hand2",bg="white")
+btn6.place(x=500,y=500)
+
+btn7=Button(frameregis,text="Modificar",command=modificarBD,cursor="hand2",bg="white")
+btn7.place(x=300,y=500)
+
+btn8=Button(frameregis,text="Guardar",command=guardarBD,cursor="hand2",bg="white")
+btn8.place(x=400,y=500)
+
+
+
 
 root.mainloop()
