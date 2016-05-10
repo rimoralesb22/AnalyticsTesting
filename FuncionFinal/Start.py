@@ -77,8 +77,6 @@ def guardarBD():
     
     
 def modificar():    
-    #txt3.insert(1.0,dsn_tns)
-    #txt3.delete(1.0, END)
     try:
         tree.delete(*tree.get_children())
         panel.remove(frame)
@@ -156,16 +154,19 @@ def ingresar():
     cuentas=(txt.get(1.0,END)[:-1]).split(",")
     ano1=ent3.get()
     ano2=ent4.get()
-    #contrasenna=ent1.get()
     if cuentas!=['']:
-        if int(ano2)>int(ano1):
-            if ano1!="":
-                if ano2!="":
+        if ano1!="":
+            if ano2!="":
+                if int(ano2)>int(ano1):
                     try:                    
                         temp=[]
                         listaFinal=[]
                         for i in cuentas:
                             try:
+                                print("Ejecutando consultora "+i)
+                                print("Porcentaje de ejecución: "+str(round((cuentas.index(i)+1)/len(cuentas)*100))+"%")
+                                print("***************************************************")
+                                print("***************************************************\n")
                                 sqlZona=Zona(i,ano1,ano2)
                                 zona=connect(sqlZona)
                                 zonas1=(lecturaArchivo("kmeans-zona.csv"))
@@ -187,29 +188,22 @@ def ingresar():
                                 listaFinal.append(temp)
                                 temp=[]
                                 imprimir=listaFinal
+                                
                             except IndexError:
                                 messagebox.showinfo(title="Error",message="No hay información disponible para las consultoras indicadas")
-                                
+                        print("\n\n*******************FINALIZADO**********************")        
                         cargarTree(listaFinal)
                         panel.remove(frame)
                         panel.add(fingresar)  
                           
-                    except ValueError:
-                         messagebox.showinfo(title="Error",message="Lo que digito no es valido")
-                         nombre=ent.delete(0,END)
-                         ano1=ent3.delete(0,END)
-                         ano2=ent4.delete(0,END)
-                    
-                    except TypeError:
-                        messagebox.showinfo(title="Error",message="Usted no es un usuario Registrado")
-                        nombre=ent.delete(0,END)
-                        contrasenna=ent1.delete(0,END)                
+                    except Exception as e: 
+                         messagebox.showinfo(title="Error",message=str(e))
                 else:
-                     messagebox.showinfo(title="Error",message="Debe incluir un rango de año")
+                    messagebox.showinfo(title="Error",message="El segundo año debe ser mayor al primero")  
             else:
                  messagebox.showinfo(title="Error",message="Debe incluir un rango de año")
         else:
-            messagebox.showinfo(title="Error",message="El segundo año debe ser mayor al primero")            
+             messagebox.showinfo(title="Error",message="Debe incluir un rango de año")          
     else:
         messagebox.showinfo(title="Error",message="Debe incluir un numero de cuenta")
 
@@ -219,7 +213,7 @@ root.title("Analytics")
 
 frameprin=ttk.Frame(root)
 frameprin.pack(expand=YES)
-#frameprin["padding"]=(10,10) # Establece un Borde
+
 
 panel=ttk.Panedwindow(frameprin, orient=VERTICAL)
 panel.grid()
@@ -227,26 +221,12 @@ panel.grid()
 frame=ttk.Frame(frameprin)
 fingresar=ttk.Frame(frameprin)
 frameregis=ttk.Frame(frameprin)
-##frameventas=ttk.Frame(frameprin)
-##fnuevo=ttk.Frame(frameprin)
-##fusados=ttk.Frame(frameprin)
-##frm_adminmo=ttk.Frame(frameprin)
-##modiregis=ttk.Frame(frameprin)
-##frm_adminmo1=ttk.Frame(frameprin)
-##frm_adminmo2=ttk.Frame(frameprin)
-##frm_adminmo3=ttk.Frame(frameprin)
 
 panel.add(frame)
 
 imagen = PhotoImage(file="Log.gif")
 flogin = Label(frame,image=imagen)
 
-##imagen1 = PhotñoImage(file="salir.gif")
-##flogin1 = Label(frame,image=imagen1)
-##imagen2 = PhotoImage(file="Boton ingresar.gif")
-##flogin2 = Label(frame,image=imagen2)
-##imagen3 = PhotoImage(file="registrarse.gif")
-##flogin3 = Label(frame,image=imagen3)
 
 flogin.image=imagen
 flogin.grid(row=0,column=0,columnspan=10,rowspan=50)
@@ -258,29 +238,19 @@ w.place(x=10,y=174)
 
 ano = Label(frame, text="Años:")
 ano.place(x=50,y=110)
-##btn1=Button(frame,image=imagen2,command=ingresar,relief="flat",cursor="hand2",bg="red")
-##btn1.place(x=180,y=300)
-##
-##
-##btn2=Button(frame,image=imagen3,command=registrarse,relief="flat",cursor="hand2",bg="gold")
-##btn2.place(x=60,y=300)
-
-
-#ent=Entry(flogin,width=30,relief="flat",borderwidth=7,font=("arial",14),bg="dark gray")
 
 txt= Text(flogin,width=20,height=13,bg="dark gray",font=("arial",14))
 txt.place(x=120,y=160)
 
 ent3=Entry(flogin,width=5,relief="flat",borderwidth=7,font=("arial",14),bg="dark gray")
 ent4=Entry(flogin,width=5,relief="flat",borderwidth=7,font=("arial",14),bg="dark gray")
-#ent1=Entry(flogin,width=29,relief="flat",borderwidth=7,font=("arial",14),bg="dark gray",show="*")
-#ent.place(x=120,y=164)
+
 ent3.place(x=120,y=100)
 ent4.place(x=220,y=100)
 
 ent3.insert(0, "2013")
 ent4.insert(0,"2015")
-#ent1.place(x=33,y=231)
+
 
 ############ Menu
 menubar = Menu(frame)
@@ -321,20 +291,14 @@ tree.configure(xscrollcommand=scbHDirSel.set,
 
 
 
-#nuevo = PhotoImage(file="nuevos.gif")
+
 btn5=Button(fpag,text="Atrás",command=retrocedermenu,cursor="hand2",bg="white")
 btn5.place(x=500,y=500)
 
 btn6=Button(fpag,text="Descargar Archivo",command=imprimirArchivo,cursor="hand2",bg="white")
 btn6.place(x=300,y=500)
 
-##usados = PhotoImage(file="usados.gif")
-##btn6=Button(fpag,image=usados,command=usados_,relief="flat",cursor="hand2",bg="blue")
-##btn6.place(x=300,y=40)
-##
-##venta = PhotoImage(file="ventas.gif")
-##btn7=Button(fpag,image=venta,command=ventas,relief="flat",cursor="hand2",bg="yellow")
-##btn7.place(x=500,y=40)
+
 #================================REGISTRO==================================================================
 
 imagen = PhotoImage(file="Log1.gif")
