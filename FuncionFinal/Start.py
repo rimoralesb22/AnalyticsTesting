@@ -89,15 +89,20 @@ def modificar():
 
 def imprimirArchivo():
     global imprimir
-    hora=time.strftime('%H%M%S')
-    dia=time.strftime('%d%B%Y')
-    outfile = open('Export'+dia+hora+'.csv', 'w') # Indicamos el valor 'w'.
-    outfile.write('Cuenta,GrupoZona,GrupoProducto,GrupoValor\n')
-    messagebox.showinfo(title="¡Listo!",message='Archivo exportado Export'+dia+hora+'.csv')
-    for i in imprimir:
-        linea=','.join(i)+"\n"
-        outfile.write(linea)
-    outfile.close() 	
+    try:
+        if imprimir!=[]:
+            hora=time.strftime('%H%M%S')
+            dia=time.strftime('%d%B%Y')
+            outfile = open('Export'+dia+hora+'.csv', 'w') # Indicamos el valor 'w'.
+            outfile.write('Cuenta,GrupoZona,GrupoProducto,GrupoValor\n')
+            for i in imprimir:
+                linea=','.join(i)+"\n"
+                outfile.write(linea)
+            outfile.close()
+            messagebox.showinfo(title="¡Listo!",message='Archivo exportado Export'+dia+hora+'.csv')
+    except:
+        messagebox.showinfo(title="Error",message='''No se pudo exportar el archivo, no hay suficiente información para clasificar esta consultora,
+\nVerificar columnas con la palabra None''')
 
 def lecturaArchivo(archivo):
     f = open(archivo)
@@ -190,7 +195,7 @@ def ingresar():
                                 imprimir=listaFinal
                                 
                             except IndexError:
-                                messagebox.showinfo(title="Error",message="No hay información disponible para las consultoras indicadas")
+                                messagebox.showinfo(title="Error",message="No hay información disponible para la consultora: "+str(i))
                         print("\n\n*******************FINALIZADO**********************")        
                         cargarTree(listaFinal)
                         panel.remove(frame)
